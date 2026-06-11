@@ -1,0 +1,51 @@
+when:
+  - event: [manual, push, pull_request]
+
+steps:
+  - name: vet
+    image: golang:1.26
+    environment:
+      CGO_ENABLED: "0"
+    commands:
+      - go vet ./...
+
+  - name: test
+    image: golang:1.26
+    environment:
+      CGO_ENABLED: "0"
+    commands:
+      - go test -count=1 ./...
+
+  # The race detector needs CGO and a C toolchain (present in the golang
+  # image). It guards BearerToken's concurrency safety, among other things.
+  - name: race
+    image: golang:1.26
+    environment:
+      CGO_ENABLED: "1"
+    commands:
+      - go test -race -count=1 ./...
+
+  - name: lint
+    image: golangci/golangci-lint:v2.12.2
+    commands:
+      - golangci-lint run ./...
+
+  - name: notify-success
+    image: curlimages/curl
+    when:
+      - status: success
+    commands: |
+      #!/usr/bin/env bash
+      curl -s -X POST https://notify.nightcity.network/notify/apprise \
+        -H "Content-Type: application/json" \
+        -d '{"type":"success","tag":"automations","title":"Woodpecker CI: go-restage Workflow","body":"The project was tested and released successfully."}'
+
+  - name: notify-failure
+    image: curlimages/curl
+    when:
+      - status: failure
+    commands: |
+      #!/usr/bin/env bash
+      curl -s -X POST https://notify.nightcity.network/notify/apprise \
+        -H "Content-Type: application/json" \
+        -d '{"type":"failure","tag":"automations","title":"Woodpecker CI: go-restage Workflow","body":"The project failed its test suite."}'
