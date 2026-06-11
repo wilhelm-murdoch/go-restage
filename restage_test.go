@@ -324,3 +324,38 @@ func TestConfigOptions(t *testing.T) {
 		t.Error("WithInsecureSkipVerify did not set a *http.Transport")
 	}
 }
+
+func TestWithHeader(t *testing.T) {
+	// WithHeader applies to every request, last value per key wins, custom
+	// headers may override the Accept default, and the Authenticator always
+	// has the last word.
+	var got http.Header
+	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
+		got = r.Header.Clone()
+		w.WriteHeader(http.StatusOK)
+	},
+		WithHeader("X-Tenant-ID", "first"),
+		WithHeader("X-Tenant-ID", "tenant-42"),
+		WithHeader("Accept", "application/vnd.custom+json"),
+		WithHeader("X-Contested", "from-option"),
+		WithAuthenticator(AuthenticatorFunc(func(req *http.Request) {
+			req.Header.Set("X-Contested", "from-auth")
+		})),
+	)
+
+	if err := c.Get(context.Background(), "/x", nil); err != nil {
+		t.Fatalf("Get: %v", err)
+	}
+
+	if v := got.Get("X-Tenant-ID"); v != "tenant-42" {
+		t.Errorf("X-Tenant-ID = %q, want last value %q", v, "tenant-42")
+	}
+
+	if v := got.Get("Accept"); v != "application/vnd.custom+json" {
+		t.Errorf("Accept = %q, custom header should override the default", v)
+	}
+
+	if v := got.Get("X-Contested"); v != "from-auth" {
+		t.Errorf("X-Contested = %q, authenticator should win over WithHeader", v)
+	}
+}

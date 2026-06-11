@@ -28,6 +28,7 @@ type Client struct {
 	httpClient *http.Client
 	baseURL    string
 	userAgent  string
+	headers    http.Header
 	auth       Authenticator
 	errPrefix  string
 	debug      io.Writer
@@ -54,6 +55,20 @@ func WithUserAgent(ua string) Option {
 // WithAuthenticator sets the Authenticator applied to every request.
 func WithAuthenticator(a Authenticator) Option {
 	return func(c *Client) { c.auth = a }
+}
+
+// WithHeader sets a header on every outgoing request. Repeated calls merge,
+// with the last value for a key winning. Custom headers are applied after
+// the Accept and User-Agent defaults, so they may override both, and before
+// the Authenticator, so auth always has the last word.
+func WithHeader(key, value string) Option {
+	return func(c *Client) {
+		if c.headers == nil {
+			c.headers = http.Header{}
+		}
+
+		c.headers.Set(key, value)
+	}
 }
 
 // WithErrorPrefix sets the prefix used on returned errors (e.g. the
@@ -143,6 +158,12 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body io.Re
 
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("User-Agent", c.userAgent)
+
+	for key, values := range c.headers {
+		for _, value := range values {
+			req.Header.Set(key, value)
+		}
+	}
 
 	if c.auth != nil {
 		c.auth.Authenticate(req)

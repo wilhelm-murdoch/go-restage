@@ -54,6 +54,7 @@ if err := client.Get(ctx, "/v1/things", &out); err != nil {
 | `WithTimeout(time.Duration)` | Set the request timeout |
 | `WithUserAgent(string)` | Override the `User-Agent` header (default `"go-restage"`) |
 | `WithAuthenticator(Authenticator)` | Apply auth to every request |
+| `WithHeader(key, value)` | Set a header on every request; last value per key wins |
 | `WithErrorPrefix(string)` | Prefix on returned error messages (default `"restage"`) |
 | `WithInsecureSkipVerify()` | Disable TLS verification |
 | `WithDebug(io.Writer)` | Trace every request/response to the writer (see [Debugging](#debugging)) |
@@ -149,13 +150,21 @@ client := restage.New(baseURL, restage.WithAuthenticator(auth))
 auth.SetToken(resp.Token)
 ```
 
-For anything else (API-key header, signed requests, OAuth2 refresh), pass a custom type or an inline `AuthenticatorFunc`:
+For anything else (signed requests, OAuth2 refresh, per-request logic), pass a custom type or an inline `AuthenticatorFunc`:
 
 ```go
 restage.WithAuthenticator(restage.AuthenticatorFunc(func(req *http.Request) {
 	req.Header.Set("X-API-Key", key)
 }))
 ```
+
+For a *static* header on every request - an API key, a tenant ID - `WithHeader` is simpler and leaves the authenticator slot free:
+
+```go
+restage.WithHeader("X-API-Key", key)
+```
+
+Headers apply in order: the `Accept`/`User-Agent` defaults first, then `WithHeader` values (which may override the defaults), then the `Authenticator`, which always has the last word.
 
 ## Debugging
 
