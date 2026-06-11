@@ -143,7 +143,7 @@ func TestGetBinary(t *testing.T) {
 func TestPostMultipart(t *testing.T) {
 	var gotField, gotFile string
 	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseMultipartForm(1 << 20); err != nil {
+		if err := r.ParseMultipartForm(1 << 20); err != nil { //nolint:gosec // G120: test-only handler parsing our own 1 MB-capped upload
 			t.Fatalf("parse: %v", err)
 		}
 

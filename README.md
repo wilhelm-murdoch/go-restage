@@ -202,14 +202,15 @@ func (c *Client) Thing(ctx context.Context, id string) (*Thing, error) {
 
 ```sh
 make test    # unit tests
-make lint    # golangci-lint (pinned via go run)
-make cover   # unit tests with coverage
+make lint    # golangci-lint incl. gosec (pinned via go run)
+make cover   # unit tests with coverage; enforces the 80% floor
+make vuln    # govulncheck vulnerability scan (pinned via go run)
 make vet     # go vet
 make fmt     # gofmt the tree
 make race    # unit tests with --race
 ```
 
-CI (GitHub Actions) runs the same suite across Linux, macOS, and Windows on both the minimum supported Go version and the latest stable release, and enforces a coverage floor. Separate workflows run [govulncheck](.github/workflows/govulncheck.yaml), [CodeQL](.github/workflows/codeql.yaml), and [OpenSSF Scorecard](.github/workflows/scorecard.yaml) on a weekly schedule, and Dependabot keeps dependencies and pinned actions current. A parallel [Woodpecker pipeline](.woodpecker/workflow.yaml) runs the vet/test/race/lint suite upstream of GitHub.
+The Makefile is the single source of truth for the build: both [GitHub Actions](.github/workflows/ci.yaml) and the upstream [Woodpecker pipeline](.woodpecker/workflow.yaml) call these same targets, so a green local run means a green build on both. GitHub Actions additionally runs the tests across Linux, macOS, and Windows on both the minimum supported Go version and the latest stable release, while separate workflows run [govulncheck](.github/workflows/govulncheck.yaml), [CodeQL](.github/workflows/codeql.yaml), and [OpenSSF Scorecard](.github/workflows/scorecard.yaml) on a weekly schedule, and Dependabot keeps dependencies and pinned actions current.
 
 ### Releasing
 

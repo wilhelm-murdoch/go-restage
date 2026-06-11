@@ -1,0 +1,9 @@
+# golangci-lint v2 config. gosec rides on top of the default linter set so
+# both CIs (and `make lint`) get the same security findings that CodeQL
+# approximates on GitHub. Suppressions are inline `//nolint:gosec` with a
+# justification, never blanket excludes here.
+version: "2"
+
+linters:
+  enable:
+    - gosec

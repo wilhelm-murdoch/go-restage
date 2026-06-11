@@ -14,13 +14,14 @@ cd go-restage
 ```sh
 make test    # unit tests
 make race    # unit tests under the race detector (needs CGO)
-make lint    # golangci-lint (pinned via go run, no global install needed)
+make lint    # golangci-lint incl. gosec (pinned via go run, no global install needed)
+make cover   # unit tests with coverage; enforces the 80% floor
+make vuln    # govulncheck vulnerability scan
 make vet     # go vet
-make cover   # unit tests with coverage
 make fmt     # gofmt the tree
 ```
 
-All of these run in CI (GitHub Actions), so it's worth getting them green locally first. `make lint` downloads and runs the exact pinned linter version on first use - no separate install step. CI additionally runs the tests on macOS and Windows, on both the minimum supported Go version and the latest stable release, and enforces an 80% coverage floor.
+CI calls these exact Makefile targets, so a green local run is a green build - no separate install steps, the pinned tool versions download on first use. CI additionally runs the tests on macOS and Windows, on both the minimum supported Go version and the latest stable release.
 
 ## How the code is organized
 

@@ -1,34 +1,53 @@
+# Homelab pre-flight: runs the same Makefile targets as GitHub Actions
+# (.github/workflows/) so a green build here means a green build there —
+# minus the macOS/Windows legs and CodeQL, which only exist on GitHub.
+# Change the Makefile, not this file.
+#
+# The cron event is for the weekly govulncheck sweep: add a cron in the
+# Woodpecker repo settings and the whole pipeline (vuln included) reruns
+# against the live vulnerability database.
 when:
-  - event: [manual, push, pull_request]
+  - event: [manual, push, pull_request, cron]
 
 steps:
   - name: vet
     image: golang:1.26
-    environment:
-      CGO_ENABLED: "0"
     commands:
-      - go vet ./...
+      - make vet
 
+  # The declared minimum from go.mod...
   - name: test
     image: golang:1.26
-    environment:
-      CGO_ENABLED: "0"
     commands:
-      - go test -count=1 ./...
+      - make test
 
-  # The race detector needs CGO and a C toolchain (present in the golang
-  # image). It guards BearerToken's concurrency safety, among other things.
+  # ...and the newest Go release, mirroring the GitHub matrix.
+  - name: test-latest
+    image: golang:latest
+    commands:
+      - make test
+
+  # The race target sets CGO_ENABLED=1 itself; the golang image carries the
+  # C toolchain the race detector needs.
   - name: race
     image: golang:1.26
-    environment:
-      CGO_ENABLED: "1"
     commands:
-      - go test -race -count=1 ./...
+      - make race
 
   - name: lint
-    image: golangci/golangci-lint:v2.12.2
+    image: golang:1.26
     commands:
-      - golangci-lint run ./...
+      - make lint
+
+  - name: cover
+    image: golang:1.26
+    commands:
+      - make cover
+
+  - name: vuln
+    image: golang:1.26
+    commands:
+      - make vuln
 
   - name: notify-success
     image: curlimages/curl

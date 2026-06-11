@@ -84,7 +84,7 @@ func TestDebugTransportSkipsMultipart(t *testing.T) {
 	var buf bytes.Buffer
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseMultipartForm(1 << 20); err != nil {
+		if err := r.ParseMultipartForm(1 << 20); err != nil { //nolint:gosec // G120: test-only handler parsing our own 1 MB-capped upload
 			t.Fatalf("parse multipart: %v", err)
 		}
 

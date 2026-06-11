@@ -4,14 +4,18 @@ SHELL        := $(shell which bash)
 # pinned without network-piped install scripts.
 LINTER       := go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.12.2
 TESTRUNNER   := go run gotest.tools/gotestsum@v1.13.0
-ROOT_DIR     := $(shell git rev-parse --show-toplevel)
+VULNCHECKER  := go run golang.org/x/vuln/cmd/govulncheck@v1.3.0
+COVER_FLOOR  := 80
+# Lazily expanded: only `fmt` needs it, and CI containers shouldn't have to
+# care whether git trusts the workspace.
+ROOT_DIR     = $(shell git rev-parse --show-toplevel)
 NO_COLOR     :=\033[0m
 ATTN_COLOR   :=\033[33;01m
 
 ## EOF define block
 
 .PHONY: all
-all: fmt test race lint cover
+all: fmt test race lint cover vuln
 
 .PHONY: deps
 deps:
@@ -41,7 +45,9 @@ race:
 .PHONY: cover
 cover:
 	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
-	@CGO_ENABLED=0 go test -count=1 -cover ./...
+	@CGO_ENABLED=0 go test -count=1 -coverprofile=coverage.out ./...
+	@go tool cover -func=coverage.out | awk -v floor=$(COVER_FLOOR) \
+		'/^total:/ { sub(/%/, "", $$3); printf "total coverage: %s%% (floor: %s%%)\n", $$3, floor; exit ($$3 + 0 < floor) ? 1 : 0 }'
 
 .PHONY: vet
 vet:
@@ -52,6 +58,13 @@ vet:
 lint:
 	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
 	@CGO_ENABLED=0 $(LINTER) run ./...
+
+# The vulnerability database is fetched live on every run; the pin above only
+# fixes the scanner binary itself.
+.PHONY: vuln
+vuln:
+	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
+	@$(VULNCHECKER) ./...
 
 .PHONY: clean
 clean:

@@ -1,7 +1,7 @@
 # Scans dependencies and the call graph with Go's official vulnerability
 # scanner. The weekly cron matters: new CVEs land against unchanged code,
-# so PR-only scanning would miss them. The vulnerability database is always
-# fetched live; the pin below only fixes the scanner binary itself.
+# so PR-only scanning would miss them. The scanner version is pinned in the
+# Makefile; the vulnerability database is always fetched live.
 name: govulncheck
 
 on:
@@ -24,4 +24,4 @@ jobs:
         with:
           go-version-file: go.mod
           cache: false
-      - run: go run golang.org/x/vuln/cmd/govulncheck@v1.3.0 ./...
+      - run: make vuln
