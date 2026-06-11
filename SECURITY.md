@@ -13,8 +13,8 @@ This project is pre-1.0. Security fixes are applied to the latest released `v0.x
 
 Please report security issues **privately** - do not open a public issue for anything exploitable.
 
-- Preferred: open a private security advisory on the repository ("Security" → "Report a vulnerability").
-- If that is unavailable, contact the maintainers privately through the repository host.
+- Preferred: [open a private security advisory](https://github.com/wilhelm-murdoch/go-restage/security/advisories/new) ("Security" → "Report a vulnerability" on the repository).
+- If that is unavailable, contact the maintainers privately through GitHub.
 
 Please include enough detail to reproduce: affected version, a minimal proof of concept, and the impact you observed. We'll acknowledge the report, investigate, and coordinate a fix and disclosure timeline with you.
 

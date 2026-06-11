@@ -7,6 +7,11 @@ Thanks for your interest in improving go-restage! This is a small, API-agnostic 
 You'll need **Go 1.26+**. Clone the repository and, from its root:
 
 ```sh
+git clone https://github.com/wilhelm-murdoch/go-restage.git
+cd go-restage
+```
+
+```sh
 make test    # unit tests
 make race    # unit tests under the race detector (needs CGO)
 make lint    # golangci-lint (pinned via go run, no global install needed)
@@ -15,7 +20,7 @@ make cover   # unit tests with coverage
 make fmt     # gofmt the tree
 ```
 
-All of these run in CI, so it's worth getting them green locally first. `make lint` downloads and runs the exact pinned linter version on first use - no separate install step.
+All of these run in CI (GitHub Actions), so it's worth getting them green locally first. `make lint` downloads and runs the exact pinned linter version on first use - no separate install step. CI additionally runs the tests on macOS and Windows, on both the minimum supported Go version and the latest stable release, and enforces an 80% coverage floor.
 
 ## How the code is organized
 
@@ -33,7 +38,7 @@ Prefer adding transport-level behavior that any API would want, not behavior spe
 
 1. Build paths with the `Path` builder, never by hand-concatenating strings. User-supplied values go through `Seg` (escaped); only trusted, fixed names go through `Lit` / `NewPath`.
 2. Keep error messages in the existing `"%s: ...: %w"` shape, prefixed with the client's error prefix.
-3. New behavior needs a test. Tests use `net/http/httptest` for real HTTP round-trips - no mocking - following the `newTestClient` helper in `rest_test.go`.
+3. New behavior needs a test. Tests use `net/http/httptest` for real HTTP round-trips - no mocking - following the `newTestClient` helper in `restage_test.go`.
 4. Anything touching `BearerToken` or other shared state must stay safe under `-race` (see `TestBearerTokenConcurrent`); run `make race`.
 
 ## Pull requests

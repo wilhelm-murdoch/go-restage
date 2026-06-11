@@ -1,24 +1,41 @@
 # go-restage
 
+[![CI](https://github.com/wilhelm-murdoch/go-restage/actions/workflows/ci.yaml/badge.svg)](https://github.com/wilhelm-murdoch/go-restage/actions/workflows/ci.yaml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/wilhelm-murdoch/go-restage.svg)](https://pkg.go.dev/github.com/wilhelm-murdoch/go-restage)
+[![Go Report Card](https://goreportcard.com/badge/github.com/wilhelm-murdoch/go-restage)](https://goreportcard.com/report/github.com/wilhelm-murdoch/go-restage)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/wilhelm-murdoch/go-restage/badge)](https://scorecard.dev/viewer/?uri=github.com/wilhelm-murdoch/go-restage)
+
 A small, reusable toolkit for building RESTful API clients in Go: a configurable HTTP client with pluggable authentication, JSON and multipart helpers, a path/query builder, and a structured error type. It carries no knowledge of any particular API.
+
+## Installation
+
+```sh
+go get github.com/wilhelm-murdoch/go-restage
+```
+
+Note that the package name is `restage`, not `go-restage`:
+
+```go
+import "github.com/wilhelm-murdoch/go-restage" // used as restage.New(...), restage.Path, ...
+```
 
 ## What's in the box
 
 | Piece | Type | Purpose |
 | --- | --- | --- |
-| Client | `rest.Client` | HTTP transport, JSON verbs, binary + multipart helpers |
-| Path | `rest.Path` | Escaped path + query string builder |
-| Errors | `rest.Error` + `Is*` helpers | Structured 4xx/5xx errors |
-| Auth | `rest.Authenticator` + `rest.BearerToken` | Pluggable request authentication |
-| Debug | `rest.WithDebug` | Request/response tracing for development |
+| Client | `restage.Client` | HTTP transport, JSON verbs, binary + multipart helpers |
+| Path | `restage.Path` | Escaped path + query string builder |
+| Errors | `restage.Error` + `Is*` helpers | Structured 4xx/5xx errors |
+| Auth | `restage.Authenticator` + `restage.BearerToken` | Pluggable request authentication |
+| Debug | `restage.WithDebug` | Request/response tracing for development |
 
 ## Client
 
 ```go
-client := rest.New("https://api.example.com",
-	rest.WithAuthenticator(rest.NewBearerToken("token")),
-	rest.WithUserAgent("my-sdk/1.0"),
-	rest.WithErrorPrefix("mysdk"),
+client := restage.New("https://api.example.com",
+	restage.WithAuthenticator(restage.NewBearerToken("token")),
+	restage.WithUserAgent("my-sdk/1.0"),
+	restage.WithErrorPrefix("mysdk"),
 )
 
 var out struct {
@@ -37,7 +54,7 @@ if err := client.Get(ctx, "/v1/things", &out); err != nil {
 | `WithTimeout(time.Duration)` | Set the request timeout |
 | `WithUserAgent(string)` | Override the `User-Agent` header (default `"go-restage"`) |
 | `WithAuthenticator(Authenticator)` | Apply auth to every request |
-| `WithErrorPrefix(string)` | Prefix on returned error messages (default `"rest"`) |
+| `WithErrorPrefix(string)` | Prefix on returned error messages (default `"restage"`) |
 | `WithInsecureSkipVerify()` | Disable TLS verification |
 | `WithDebug(io.Writer)` | Trace every request/response to the writer (see [Debugging](#debugging)) |
 
@@ -50,7 +67,7 @@ Options apply in order; later options win (e.g. `WithHTTPClient` after `WithTime
 - `PostMultipart(ctx, path, fields, files, out)` - streaming `multipart/form-data` uploads via `io.Pipe`.
 
 ```go
-files := []rest.MultipartFile{{
+files := []restage.MultipartFile{{
 	Field:    "file",
 	Filename: "cover.jpg",
 	Reader:   r, // any io.Reader
@@ -66,13 +83,13 @@ A successful response with an empty body is **not** an error: decoding a zero-le
 `Path` builds a request path and its query string in one place, escaping user input and skipping empty segments so optional IDs can be passed unconditionally.
 
 ```go
-rest.NewPath("/api").Seg("lib_1").Lit("items").String()
+restage.NewPath("/api").Seg("lib_1").Lit("items").String()
 // "/api/lib_1/items"
 
-rest.NewPath("/api").Seg("a b/c").String()
+restage.NewPath("/api").Seg("a b/c").String()
 // "/api/a%20b%2Fc"  (Seg escapes)
 
-rest.NewPath("/api").Lit("items").Seg(id).Flag("hard", true).String()
+restage.NewPath("/api").Lit("items").Seg(id).Flag("hard", true).String()
 // "/api/items/<id>?hard=1"
 ```
 
@@ -91,17 +108,17 @@ rest.NewPath("/api").Lit("items").Seg(id).Flag("hard", true).String()
 
 ## Errors
 
-Any 4xx/5xx response becomes a `*rest.Error` (response body truncated to 4 KB). The `Prefix` comes from `WithErrorPrefix`.
+Any 4xx/5xx response becomes a `*restage.Error` (response body truncated to 4 KB). The `Prefix` comes from `WithErrorPrefix`.
 
 ```go
 err := client.Get(ctx, "/v1/missing", nil)
 
-var apiErr *rest.Error
+var apiErr *restage.Error
 if errors.As(err, &apiErr) {
 	fmt.Println(apiErr.StatusCode, apiErr.Message)
 }
 
-if rest.IsNotFound(err) { /* 404 */ }
+if restage.IsNotFound(err) { /* 404 */ }
 ```
 
 Helpers: `IsNotFound` (404), `IsUnauthorized` (401), `IsForbidden` (403), `IsBadRequest` (400), and the general `HasStatus(err, code)`.
@@ -109,7 +126,7 @@ Helpers: `IsNotFound` (404), `IsUnauthorized` (401), `IsForbidden` (403), `IsBad
 A consumer can re-export the error type so callers never need to import this package:
 
 ```go
-type Error = rest.Error // errors.As works against either name
+type Error = restage.Error // errors.As works against either name
 ```
 
 ## Authentication
@@ -125,8 +142,8 @@ type Authenticator interface {
 `BearerToken` ships in the box and supports updating the token after a login:
 
 ```go
-auth := rest.NewBearerToken("")
-client := rest.New(baseURL, rest.WithAuthenticator(auth))
+auth := restage.NewBearerToken("")
+client := restage.New(baseURL, restage.WithAuthenticator(auth))
 
 // after authenticating:
 auth.SetToken(resp.Token)
@@ -135,7 +152,7 @@ auth.SetToken(resp.Token)
 For anything else (API-key header, signed requests, OAuth2 refresh), pass a custom type or an inline `AuthenticatorFunc`:
 
 ```go
-rest.WithAuthenticator(rest.AuthenticatorFunc(func(req *http.Request) {
+restage.WithAuthenticator(restage.AuthenticatorFunc(func(req *http.Request) {
 	req.Header.Set("X-API-Key", key)
 }))
 ```
@@ -145,7 +162,7 @@ rest.WithAuthenticator(rest.AuthenticatorFunc(func(req *http.Request) {
 `WithDebug` traces every request and response - method, URL, headers, and body - to the given writer. It is a development aid, not a production logger.
 
 ```go
-client := rest.New(baseURL, rest.WithDebug(os.Stderr))
+client := restage.New(baseURL, restage.WithDebug(os.Stderr))
 ```
 
 The trace restores request and response bodies after reading them, so the real exchange is unaffected. Multipart request bodies are omitted to preserve streaming, non-textual responses (images, downloads) are skipped, and bodies larger than 8 KB are truncated.
@@ -156,19 +173,19 @@ The trace restores request and response bodies after reading them, so the real e
 
 ```go
 type Client struct {
-	rest *rest.Client
-	auth *rest.BearerToken
+	restage *restage.Client
+	auth    *restage.BearerToken
 }
 
 func NewClient(baseURL string, opts ...Option) *Client {
-	c := &Client{auth: rest.NewBearerToken("")}
+	c := &Client{auth: restage.NewBearerToken("")}
 
-	// ... collect options into restOpts ...
-	c.rest = rest.New(baseURL, append([]rest.Option{
-		rest.WithUserAgent(defaultUA),
-		rest.WithAuthenticator(c.auth),
-		rest.WithErrorPrefix("mysdk"),
-	}, restOpts...)...)
+	// ... collect options into restageOpts ...
+	c.restage = restage.New(baseURL, append([]restage.Option{
+		restage.WithUserAgent(defaultUA),
+		restage.WithAuthenticator(c.auth),
+		restage.WithErrorPrefix("mysdk"),
+	}, restageOpts...)...)
 
 	return c
 }
@@ -176,7 +193,7 @@ func NewClient(baseURL string, opts ...Option) *Client {
 // Typed methods build a path and delegate to the embedded client:
 func (c *Client) Thing(ctx context.Context, id string) (*Thing, error) {
 	var t Thing
-	err := c.rest.Get(ctx, rest.NewPath("/v1/things").Seg(id).String(), &t)
+	err := c.restage.Get(ctx, restage.NewPath("/v1/things").Seg(id).String(), &t)
 	return &t, err
 }
 ```
@@ -192,7 +209,15 @@ make fmt     # gofmt the tree
 make race    # unit tests with --race
 ```
 
-CI (GitHub Actions and Woodpecker) runs the full suite of tests and checks.
+CI runs the same suite across Linux, macOS, and Windows on both the minimum supported Go version and the latest stable release, and enforces a coverage floor. Separate workflows run [govulncheck](.github/workflows/govulncheck.yaml), [CodeQL](.github/workflows/codeql.yaml), and [OpenSSF Scorecard](.github/workflows/scorecard.yaml) on a weekly schedule, and Dependabot keeps dependencies and pinned actions current.
+
+### Releasing
+
+Push a semver tag and the [release workflow](.github/workflows/release.yaml) re-verifies the tagged commit, then publishes a GitHub Release with generated notes:
+
+```sh
+git tag v0.2.0 && git push origin v0.2.0
+```
 
 ## AI Disclosure
 
