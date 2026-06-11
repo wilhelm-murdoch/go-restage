@@ -209,7 +209,7 @@ make fmt     # gofmt the tree
 make race    # unit tests with --race
 ```
 
-CI runs the same suite across Linux, macOS, and Windows on both the minimum supported Go version and the latest stable release, and enforces a coverage floor. Separate workflows run [govulncheck](.github/workflows/govulncheck.yaml), [CodeQL](.github/workflows/codeql.yaml), and [OpenSSF Scorecard](.github/workflows/scorecard.yaml) on a weekly schedule, and Dependabot keeps dependencies and pinned actions current.
+CI (GitHub Actions) runs the same suite across Linux, macOS, and Windows on both the minimum supported Go version and the latest stable release, and enforces a coverage floor. Separate workflows run [govulncheck](.github/workflows/govulncheck.yaml), [CodeQL](.github/workflows/codeql.yaml), and [OpenSSF Scorecard](.github/workflows/scorecard.yaml) on a weekly schedule, and Dependabot keeps dependencies and pinned actions current. A parallel [Woodpecker pipeline](.woodpecker/workflow.yaml) runs the vet/test/race/lint suite upstream of GitHub.
 
 ### Releasing
 
