@@ -17,6 +17,7 @@ make race    # unit tests under the race detector (needs CGO)
 make lint    # golangci-lint incl. gosec (pinned via go run, no global install needed)
 make cover   # unit tests with coverage; enforces the 80% floor
 make vuln    # govulncheck vulnerability scan
+make fuzz    # native Go fuzzing (FUZZTIME=10s per target by default)
 make vet     # go vet
 make fmt     # gofmt the tree
 ```

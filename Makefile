@@ -6,6 +6,7 @@ LINTER       := go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2
 TESTRUNNER   := go run gotest.tools/gotestsum@v1.13.0
 VULNCHECKER  := go run golang.org/x/vuln/cmd/govulncheck@v1.3.0
 COVER_FLOOR  := 80
+FUZZTIME     ?= 10s
 # Lazily expanded: only `fmt` needs it, and CI containers shouldn't have to
 # care whether git trusts the workspace.
 ROOT_DIR     = $(shell git rev-parse --show-toplevel)
@@ -65,6 +66,14 @@ lint:
 vuln:
 	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
 	@$(VULNCHECKER) ./...
+
+# Go only fuzzes one target per invocation, hence one line per target. The
+# seed corpora also run as plain tests under `make test`.
+.PHONY: fuzz
+fuzz:
+	@echo -e "$(ATTN_COLOR)==> $@ $(NO_COLOR)"
+	@CGO_ENABLED=0 go test -run='^$$' -fuzz=FuzzPathSeg -fuzztime=$(FUZZTIME) .
+	@CGO_ENABLED=0 go test -run='^$$' -fuzz=FuzzDebugBody -fuzztime=$(FUZZTIME) .
 
 .PHONY: clean
 clean:

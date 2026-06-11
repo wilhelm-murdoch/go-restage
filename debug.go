@@ -184,7 +184,14 @@ func debugBody(b []byte) string {
 	}
 
 	if len(b) > maxDebugBody {
-		return string(b[:maxDebugBody]) + fmt.Sprintf("… (%d more bytes)", len(b)-maxDebugBody)
+		// Back up to a rune boundary so the cut never splits a multibyte
+		// character; b is known to be valid UTF-8 here.
+		cut := maxDebugBody
+		for cut > 0 && !utf8.RuneStart(b[cut]) { //nolint:gosec // G602: cut <= maxDebugBody < len(b), guarded above
+			cut--
+		}
+
+		return string(b[:cut]) + fmt.Sprintf("… (%d more bytes)", len(b)-cut)
 	}
 
 	return string(b)

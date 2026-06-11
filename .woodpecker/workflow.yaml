@@ -61,6 +61,16 @@ steps:
     commands:
       - make vuln
 
+  # Real fuzzing (beyond the seed corpus, which `make test` already covers)
+  # only on the weekly cron, where the extra minutes don't slow down pushes.
+  - name: fuzz
+    image: golang:1.26
+    pull: true
+    when:
+      - event: cron
+    commands:
+      - make fuzz FUZZTIME=2m
+
   - name: notify-success
     image: curlimages/curl
     when:

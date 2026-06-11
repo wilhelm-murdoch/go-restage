@@ -205,6 +205,7 @@ make test    # unit tests
 make lint    # golangci-lint incl. gosec (pinned via go run)
 make cover   # unit tests with coverage; enforces the 80% floor
 make vuln    # govulncheck vulnerability scan (pinned via go run)
+make fuzz    # native Go fuzzing (FUZZTIME=10s per target by default)
 make vet     # go vet
 make fmt     # gofmt the tree
 make race    # unit tests with --race
