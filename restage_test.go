@@ -1,4 +1,4 @@
-package rest
+package restage
 
 import (
 	"context"

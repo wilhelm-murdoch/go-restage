@@ -1,9 +1,9 @@
-// Package rest is a small, reusable toolkit for building RESTful API
+// Package restage is a small, reusable toolkit for building RESTful API
 // clients: a configurable HTTP client with pluggable authentication,
 // JSON and multipart helpers, a path/query builder, and a structured
 // error type. It carries no knowledge of any particular API and is
 // intended to be wrapped by a typed, domain-specific client.
-package rest
+package restage
 
 import (
 	"bytes"
@@ -57,7 +57,7 @@ func WithAuthenticator(a Authenticator) Option {
 }
 
 // WithErrorPrefix sets the prefix used on returned errors (e.g. the
-// wrapping package name). It defaults to "rest".
+// wrapping package name). It defaults to "restage".
 func WithErrorPrefix(prefix string) Option {
 	return func(c *Client) { c.errPrefix = prefix }
 }
@@ -85,7 +85,7 @@ func New(baseURL string, opts ...Option) *Client {
 		httpClient: &http.Client{Timeout: time.Minute},
 		baseURL:    strings.TrimRight(baseURL, "/"),
 		userAgent:  DefaultUserAgent,
-		errPrefix:  "rest",
+		errPrefix:  "restage",
 	}
 
 	for _, opt := range opts {
