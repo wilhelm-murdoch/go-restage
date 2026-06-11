@@ -162,12 +162,14 @@ type Client struct {
 
 func NewClient(baseURL string, opts ...Option) *Client {
 	c := &Client{auth: rest.NewBearerToken("")}
+
 	// ... collect options into restOpts ...
 	c.rest = rest.New(baseURL, append([]rest.Option{
 		rest.WithUserAgent(defaultUA),
 		rest.WithAuthenticator(c.auth),
 		rest.WithErrorPrefix("mysdk"),
 	}, restOpts...)...)
+
 	return c
 }
 
@@ -179,10 +181,23 @@ func (c *Client) Thing(ctx context.Context, id string) (*Thing, error) {
 }
 ```
 
-## Testing
-
-The package is exercised by `rest_test.go` using `net/http/httptest` - real HTTP round-trips with no mocking. Run it with the rest of the suite:
+## Development
 
 ```sh
-go test ./...
+make test    # unit tests
+make lint    # golangci-lint (pinned via go run)
+make cover   # unit tests with coverage
+make vet     # go vet
+make fmt     # gofmt the tree
+make race    # unit tests with --race
 ```
+
+CI (GitHub Actions and Woodpecker) runs the full suite of tests and checks.
+
+## AI Disclosure
+
+The architecture and base structure of this module are my own. I use AI as a tool to assist with time-consuming work — documentatiodn, tests, and bug hunting — and as a sounding board for structural decisions that keep the package easy to adopt. For a solo developer it's a force multiplier for shipping high-quality code efficiently; simply a tool, not a crutch.
+
+## License
+
+[MIT](LICENSE) © Wilhelm Murdoch
