@@ -6,24 +6,32 @@
 # The cron event is for the weekly govulncheck sweep: add a cron in the
 # Woodpecker repo settings and the whole pipeline (vuln included) reruns
 # against the live vulnerability database.
+#
+# `pull: true` on the golang steps matters: the floating tags (1.26, latest)
+# move on every Go patch release, and patch releases are where stdlib CVE
+# fixes land. Without it the agent keeps building against its cached image
+# (which is how build #6 was scanning go1.26.3 after 1.26.4 had shipped).
 when:
   - event: [manual, push, pull_request, cron]
 
 steps:
   - name: vet
     image: golang:1.26
+    pull: true
     commands:
       - make vet
 
   # The declared minimum from go.mod...
   - name: test
     image: golang:1.26
+    pull: true
     commands:
       - make test
 
   # ...and the newest Go release, mirroring the GitHub matrix.
   - name: test-latest
     image: golang:latest
+    pull: true
     commands:
       - make test
 
@@ -31,21 +39,25 @@ steps:
   # C toolchain the race detector needs.
   - name: race
     image: golang:1.26
+    pull: true
     commands:
       - make race
 
   - name: lint
     image: golang:1.26
+    pull: true
     commands:
       - make lint
 
   - name: cover
     image: golang:1.26
+    pull: true
     commands:
       - make cover
 
   - name: vuln
     image: golang:1.26
+    pull: true
     commands:
       - make vuln
 
