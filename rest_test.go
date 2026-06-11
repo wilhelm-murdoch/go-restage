@@ -31,6 +31,7 @@ func TestDoDecodesAndSendsBody(t *testing.T) {
 		gotMethod, gotCT, gotAuth, gotUA string
 		gotBody                          []byte
 	)
+
 	c := newTestClient(t, func(w http.ResponseWriter, r *http.Request) {
 		gotMethod = r.Method
 		gotCT = r.Header.Get("Content-Type")
@@ -43,6 +44,7 @@ func TestDoDecodesAndSendsBody(t *testing.T) {
 	var out struct {
 		OK bool `json:"ok"`
 	}
+
 	if err := c.Post(context.Background(), "/x", map[string]string{"a": "b"}, &out); err != nil {
 		t.Fatalf("Post: %v", err)
 	}
@@ -50,12 +52,15 @@ func TestDoDecodesAndSendsBody(t *testing.T) {
 	if gotMethod != http.MethodPost || gotCT != "application/json" {
 		t.Errorf("method=%s ct=%s", gotMethod, gotCT)
 	}
+
 	if gotAuth != "Bearer tok" || gotUA != "kit/1" {
 		t.Errorf("auth=%q ua=%q", gotAuth, gotUA)
 	}
+
 	if strings.TrimSpace(string(gotBody)) != `{"a":"b"}` {
 		t.Errorf("body = %s", gotBody)
 	}
+
 	if !out.OK {
 		t.Errorf("decoded = %+v", out)
 	}
@@ -71,6 +76,7 @@ func TestDoNoAuthHeaderWhenUnset(t *testing.T) {
 	if err := c.Get(context.Background(), "/x", nil); err != nil {
 		t.Fatalf("Get: %v", err)
 	}
+
 	if hadAuth {
 		t.Error("Authorization header set without an authenticator")
 	}
@@ -101,9 +107,11 @@ func TestErrorResponseCarriesPrefixAndStatus(t *testing.T) {
 	if !HasStatus(err, http.StatusForbidden) {
 		t.Fatal("HasStatus(403) = false")
 	}
+
 	if got := err.Error(); !strings.HasPrefix(got, "kit: GET /x: 403") {
 		t.Errorf("Error() = %q", got)
 	}
+
 	_ = apiErr
 }
 
@@ -112,6 +120,7 @@ func TestGetBinary(t *testing.T) {
 		if r.Header.Get("Accept") != "" {
 			t.Errorf("Accept should be removed for binary GET, got %q", r.Header.Get("Accept"))
 		}
+
 		w.Header().Set("Content-Type", "image/png")
 		_, _ = w.Write([]byte("png-bytes"))
 	})
@@ -125,6 +134,7 @@ func TestGetBinary(t *testing.T) {
 	if ct != "image/png" {
 		t.Errorf("content-type = %q", ct)
 	}
+
 	if data, _ := io.ReadAll(body); string(data) != "png-bytes" {
 		t.Errorf("body = %q", data)
 	}
@@ -136,12 +146,15 @@ func TestPostMultipart(t *testing.T) {
 		if err := r.ParseMultipartForm(1 << 20); err != nil {
 			t.Fatalf("parse: %v", err)
 		}
+
 		gotField = r.FormValue("title")
 		f, _, err := r.FormFile("file")
 		if err != nil {
 			t.Fatalf("form file: %v", err)
 		}
+
 		defer func() { _ = f.Close() }()
+
 		b, _ := io.ReadAll(f)
 		gotFile = string(b)
 		w.WriteHeader(http.StatusOK)
@@ -187,6 +200,7 @@ func TestPathQueryMerge(t *testing.T) {
 	if got := NewPath("/x").Query(q).String(); got != "/x?limit=10&page=2" {
 		t.Errorf("got %q", got)
 	}
+
 	if got := NewPath("/x").Query(nil).String(); got != "/x" {
 		t.Errorf("nil query: got %q", got)
 	}
@@ -196,6 +210,7 @@ func TestBearerToken(t *testing.T) {
 	b := NewBearerToken("")
 	req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
 	b.Authenticate(req)
+
 	if req.Header.Get("Authorization") != "" {
 		t.Error("empty token should not set header")
 	}
@@ -204,6 +219,7 @@ func TestBearerToken(t *testing.T) {
 	if b.Token() != "abc" {
 		t.Errorf("Token = %q", b.Token())
 	}
+
 	b.Authenticate(req)
 	if req.Header.Get("Authorization") != "Bearer abc" {
 		t.Errorf("Authorization = %q", req.Header.Get("Authorization"))
@@ -211,25 +227,33 @@ func TestBearerToken(t *testing.T) {
 }
 
 func TestBearerTokenConcurrent(t *testing.T) {
-	b := NewBearerToken("")
 	var wg sync.WaitGroup
+
+	b := NewBearerToken("")
+
 	for range 50 {
 		wg.Add(3)
+
 		go func() { defer wg.Done(); b.SetToken("tok") }()
+
 		go func() { defer wg.Done(); _ = b.Token() }()
+
 		go func() {
 			defer wg.Done()
 			req, _ := http.NewRequest(http.MethodGet, "http://x", nil)
 			b.Authenticate(req)
 		}()
 	}
+
 	wg.Wait()
 }
 
 func TestAuthenticatorFunc(t *testing.T) {
 	var called bool
 	var a Authenticator = AuthenticatorFunc(func(*http.Request) { called = true })
+
 	a.Authenticate(&http.Request{})
+
 	if !called {
 		t.Error("AuthenticatorFunc not invoked")
 	}
@@ -258,6 +282,7 @@ func TestVerbs(t *testing.T) {
 			if err := tt.call(); err != nil {
 				t.Fatalf("%s: %v", tt.name, err)
 			}
+
 			if gotMethod != tt.want {
 				t.Errorf("method = %s, want %s", gotMethod, tt.want)
 			}
@@ -269,9 +294,11 @@ func TestStatusHelpers(t *testing.T) {
 	if !IsNotFound(&Error{StatusCode: http.StatusNotFound}) {
 		t.Error("IsNotFound")
 	}
+
 	if !IsUnauthorized(&Error{StatusCode: http.StatusUnauthorized}) {
 		t.Error("IsUnauthorized")
 	}
+
 	if !IsBadRequest(&Error{StatusCode: http.StatusBadRequest}) {
 		t.Error("IsBadRequest")
 	}
@@ -292,6 +319,7 @@ func TestConfigOptions(t *testing.T) {
 	if custom.Timeout != 2*time.Second {
 		t.Errorf("WithTimeout not applied to custom client: %v", custom.Timeout)
 	}
+
 	if _, ok := custom.Transport.(*http.Transport); !ok {
 		t.Error("WithInsecureSkipVerify did not set a *http.Transport")
 	}

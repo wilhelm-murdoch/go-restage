@@ -33,6 +33,7 @@ func (p *Path) Seg(segments ...string) *Path {
 		if s == "" {
 			continue
 		}
+
 		p.b.WriteByte('/')
 		p.b.WriteString(url.PathEscape(s))
 	}
@@ -46,6 +47,7 @@ func (p *Path) Lit(segments ...string) *Path {
 		if s == "" {
 			continue
 		}
+
 		p.b.WriteByte('/')
 		p.b.WriteString(s)
 	}
@@ -60,6 +62,7 @@ func (p *Path) Query(q url.Values) *Path {
 			p.add(key, v)
 		}
 	}
+
 	return p
 }
 
@@ -75,6 +78,7 @@ func (p *Path) Flag(key string, on bool) *Path {
 	if on {
 		p.add(key, "1")
 	}
+
 	return p
 }
 
@@ -82,6 +86,7 @@ func (p *Path) add(key, value string) {
 	if p.query == nil {
 		p.query = url.Values{}
 	}
+
 	p.query.Add(key, value)
 }
 

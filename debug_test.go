@@ -19,9 +19,11 @@ func TestDebugTransportLogsRedactsAndRestores(t *testing.T) {
 		if strings.TrimSpace(string(body)) != `{"q":"x"}` {
 			t.Errorf("server received body %q", body)
 		}
+
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = io.WriteString(w, `{"ok":true}`)
 	}))
+
 	t.Cleanup(srv.Close)
 
 	c := New(srv.URL, WithDebug(&buf), WithAuthenticator(NewBearerToken("supersecret")))
@@ -29,6 +31,7 @@ func TestDebugTransportLogsRedactsAndRestores(t *testing.T) {
 	var out struct {
 		OK bool `json:"ok"`
 	}
+
 	if err := c.Post(context.Background(), "/x", map[string]string{"q": "x"}, &out); err != nil {
 		t.Fatalf("Post: %v", err)
 	}
@@ -44,6 +47,7 @@ func TestDebugTransportLogsRedactsAndRestores(t *testing.T) {
 			t.Errorf("debug output missing %q\n---\n%s", want, s)
 		}
 	}
+
 	if strings.Contains(s, "supersecret") {
 		t.Errorf("bearer token leaked into debug output:\n%s", s)
 	}
@@ -83,14 +87,17 @@ func TestDebugTransportSkipsMultipart(t *testing.T) {
 		if err := r.ParseMultipartForm(1 << 20); err != nil {
 			t.Fatalf("parse multipart: %v", err)
 		}
+
 		f, _, err := r.FormFile("file")
 		if err != nil {
 			t.Fatalf("form file: %v", err)
 		}
 		defer func() { _ = f.Close() }()
+
 		if b, _ := io.ReadAll(f); string(b) != "filedata" {
 			t.Errorf("server received file %q", b)
 		}
+
 		w.WriteHeader(http.StatusOK)
 	}))
 	t.Cleanup(srv.Close)
@@ -105,6 +112,7 @@ func TestDebugTransportSkipsMultipart(t *testing.T) {
 	if !strings.Contains(s, "<multipart form omitted>") {
 		t.Errorf("multipart body should be omitted:\n%s", s)
 	}
+
 	if strings.Contains(s, "filedata") {
 		t.Errorf("multipart file contents leaked into debug output:\n%s", s)
 	}
@@ -118,6 +126,7 @@ func TestDebugTransportLogsError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected a transport error")
 	}
+
 	if !strings.Contains(buf.String(), "<< error") {
 		t.Errorf("transport error not logged:\n%s", buf.String())
 	}
@@ -127,9 +136,11 @@ func TestDebugBody(t *testing.T) {
 	if got := debugBody(nil); got != "<empty>" {
 		t.Errorf("empty = %q", got)
 	}
+
 	if got := debugBody([]byte{0x00, 0x01}); got != "<skipping binary output>" {
 		t.Errorf("binary = %q", got)
 	}
+
 	if got := debugBody([]byte("hello")); got != "hello" {
 		t.Errorf("text = %q", got)
 	}

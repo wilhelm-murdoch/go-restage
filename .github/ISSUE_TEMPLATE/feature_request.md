@@ -8,7 +8,7 @@ labels: enhancement
 ### What's missing
 
 Describe the option, helper, or behavior you'd like. Keep in mind this is
-an API-agnostic toolkit — proposals should stay generic to REST clients,
+an API-agnostic toolkit - proposals should stay generic to REST clients,
 not tied to one specific API.
 
 ### Use case

@@ -16,4 +16,4 @@ What does this change, and why? Link any related issue (e.g. `Closes #12`).
 
 ### Notes
 
-Anything reviewers should know — tradeoffs or follow-ups.
+Anything reviewers should know - tradeoffs or follow-ups.

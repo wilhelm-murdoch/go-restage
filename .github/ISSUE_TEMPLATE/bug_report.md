@@ -33,5 +33,5 @@ What actually happened. Include the full error string if there is one
 
 ### Additional context
 
-Anything else that helps — the target API, custom `Authenticator`, or
+Anything else that helps - the target API, custom `Authenticator`, or
 options in use, etc.

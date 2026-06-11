@@ -142,7 +142,7 @@ rest.WithAuthenticator(rest.AuthenticatorFunc(func(req *http.Request) {
 
 ## Debugging
 
-`WithDebug` traces every request and response — method, URL, headers, and body — to the given writer. It is a development aid, not a production logger.
+`WithDebug` traces every request and response - method, URL, headers, and body - to the given writer. It is a development aid, not a production logger.
 
 ```go
 client := rest.New(baseURL, rest.WithDebug(os.Stderr))
@@ -196,7 +196,7 @@ CI (GitHub Actions and Woodpecker) runs the full suite of tests and checks.
 
 ## AI Disclosure
 
-The architecture and base structure of this module are my own. I use AI as a tool to assist with time-consuming work — documentatiodn, tests, and bug hunting — and as a sounding board for structural decisions that keep the package easy to adopt. For a solo developer it's a force multiplier for shipping high-quality code efficiently; simply a tool, not a crutch.
+The architecture and base structure of this module are my own. I use AI as a tool to assist with time-consuming work - documentatiodn, tests, and bug hunting - and as a sounding board for structural decisions that keep the package easy to adopt. For a solo developer it's a force multiplier for shipping high-quality code efficiently; simply a tool, not a crutch.
 
 ## License
 

@@ -27,7 +27,7 @@ var sensitiveHeaders = map[string]bool{
 // WithDebug logs every request and response (method, URL, headers, and
 // body) to w. It is a debugging aid, not a production logger.
 //
-// Security: bodies are printed as-is and may contain secrets — most
+// Security: bodies are printed as-is and may contain secrets - most
 // notably the username and password sent by Login. The Authorization and
 // cookie headers are redacted, but request/response bodies are not, so
 // never enable this against a server reachable over an untrusted network
@@ -116,7 +116,9 @@ func (d *debugTransport) logResponseBody(resp *http.Response) {
 		if ct == "" {
 			ct = "binary"
 		}
+
 		d.printf("   body: <%s omitted>\n", ct)
+
 		return
 	}
 
@@ -137,6 +139,7 @@ func (d *debugTransport) writeHeaders(h http.Header) {
 	for k := range h {
 		keys = append(keys, k)
 	}
+
 	sort.Strings(keys)
 
 	for _, k := range keys {
@@ -144,6 +147,7 @@ func (d *debugTransport) writeHeaders(h http.Header) {
 		if sensitiveHeaders[http.CanonicalHeaderKey(k)] {
 			value = "<redacted>"
 		}
+
 		d.printf("   %s: %s\n", k, value)
 	}
 }

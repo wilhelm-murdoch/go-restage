@@ -99,6 +99,7 @@ func New(baseURL string, opts ...Option) *Client {
 		if base == nil {
 			base = http.DefaultTransport
 		}
+
 		c.httpClient.Transport = newDebugTransport(base, c.debug)
 	}
 
